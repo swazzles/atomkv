@@ -42,7 +42,7 @@ let someData = DocumentSerialization.serializeDocument services.DocumentSerializ
 AtomTable.put table "mykey" someData
 
 // retrieve the document
-let doc = AtomTable.get table "myekey" |> DocumentSerialization.deserializeDocument services.DocumentSerializer
+let doc = AtomTable.get table "mykey" |> DocumentSerialization.deserializeDocument services.DocumentSerializer
 ``` 
 
 ## Extensibility
