@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types\DocumentSerialization.fs" />
+    <Compile Include="Types\KeySpace.fs" />
+    <Compile Include="Types\Compression.fs" />
+    <Compile Include="Types\ServiceBundle.fs" />
+    <Compile Include="Types\Atom.fs" />
+    <Compile Include="GZipCompression.fs" />
+    <Compile Include="JsonDocumentSerialization.fs" />
+    <Compile Include="AtomConstants.fs" />
+    <Compile Include="AtomKeySpaceV1.fs" />
+    <Compile Include="AtomBytes.fs" />
+    <Compile Include="AtomPage.fs" />
+    <Compile Include="AtomTable.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LruCacheNet" Version="1.2.0" />
+    <PackageReference Include="SimpleBase" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>
