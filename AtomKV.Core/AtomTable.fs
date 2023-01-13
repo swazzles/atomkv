@@ -16,7 +16,7 @@ type AtomTable = {
 }
 
 module AtomTable = 
-    let openTable tableName keySpaceSize (serviceBundle:ServiceBundle) = 
+    let openTable (atom:Atom) tableName keySpaceSize = 
         let table = {
             Name = tableName
             KeySpaceSize = keySpaceSize
@@ -24,20 +24,20 @@ module AtomTable =
             TablePage = AtomPage.openPage $"{tableName}.table"
         }
 
-        DocumentSerialization.serializeDocument serviceBundle.DocumentSerializer table
-            |> AtomPage.put table.TablePage "TableDefinition"
+        let res = JsonSerialization.serialize table |> AtomPage.put atom table.TablePage "TableDefinition"
+        match res.Status with
+        | PutResponseStatus.Ok | PutResponseStatus.NoUpdate -> table
+        | PutResponseStatus.Fail -> failwith $"Error when opening table {tableName}. See error logs."   
 
-        table
-
-    let put table key value (serviceBundle:ServiceBundle) = 
-        let keyShard = KeySpace.getKeyShard serviceBundle.KeySharder key table.KeySpaceSize 
-        (table.Pages.[keyShard], key, value) |||> AtomPage.put
+    let put (atom:Atom) table key doc = 
+        let keyShard = KeySpace.getKeyShard atom.KeySharder key table.KeySpaceSize 
+        AtomPage.put atom table.Pages.[keyShard] key doc
     
-    let get table key (serviceBundle:ServiceBundle) = 
-        let keyShard = KeySpace.getKeyShard serviceBundle.KeySharder key table.KeySpaceSize
-        (table.Pages.[keyShard], key) ||> AtomPage.get
+    let get (atom:Atom) table key = 
+        let keyShard = KeySpace.getKeyShard atom.KeySharder key table.KeySpaceSize
+        AtomPage.get atom table.Pages.[keyShard] key 
 
-    let dropTable table = 
+    let dropTable (atom:Atom) table = 
         for kvp in table.Pages 
             do kvp.Value |> AtomPage.deletePage
 

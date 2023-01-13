@@ -19,31 +19,32 @@ type TestType = {
 
 
 [<Test>]
-let ``test putting and retrieving from page``  =
+let ``test putting and retrieving from page``()  =
+    let atom = AtomDefaultInitialization.initialize()
+    
     let page = AtomPage.openPage "1"
-    let doc = [ for i in [1..4096] do yield "C" ] |> List.fold (+) ""
-    let doc = Encoding.Unicode.GetBytes doc
+    AtomPage.deletePage page
+
+    let page = AtomPage.openPage "1"
+
+    let docObject = {
+        TestField = 1
+    }
+
+    let doc = JsonSerialization.serialize docObject
+
     for i in [1..100] do
-        let key = String.Format("{0}", i)
-        AtomPage.put page key doc |> ignore
-        let newDoc = AtomPage.get page key
-        1 |> should equal 1
+        let key = $"mykey-{i}"
+        AtomPage.put atom page key doc |> ignore
+
+        let getResponse = AtomPage.get atom page key
+        getResponse.Status |> should equal GetResponseStatus.Ok
+
+        let newDocObject = getResponse |> AtomDocument.unwrap |> JsonSerialization.deserialize<TestType>
+        newDocObject.TestField |> should equal docObject.TestField
 
 [<Test>]
-let ``test putting and retrieving from page compressed`` () =
-    let page = AtomPage.openPage "1_compressed"
-    let doc = [ for i in [1..4096] do yield "C" ] |> List.fold (+) ""
-    let doc = Encoding.Unicode.GetBytes doc
-    let doc = Compression.compress GZipCompression.compress doc
-    for i in [1..100] do
-        let key = String.Format("{0}", i)
-        AtomPage.put page key doc |> ignore
-        //let newDoc = AtomPage.get page key
-        //let newDoc = AtomCompression.decompress newDoc
-        1 |> should equal 1
-
-[<Test>]
-let ``test generating stable key hash`` hasher = 
+let ``test generating stable key hash``() = 
     let key = "thisismytestkey"
     let hash1 = KeySpace.getKeyHash AtomKeySpaceV1.getKeyHash key
     let hash2 = KeySpace.getKeyHash AtomKeySpaceV1.getKeyHash key

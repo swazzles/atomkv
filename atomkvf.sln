@@ -11,7 +11,12 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "AtomKV.CLI", "AtomKV.CLI\At
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AtomKV.Service", "AtomKV.Service\AtomKV.Service.fsproj", "{2EC8123D-5ACF-47B2-A4D2-C18E9A964F05}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AtomKV.AtomSharp", "AtomKV.AtomSharp\AtomKV.AtomSharp.fsproj", "{52937539-300B-4B08-B151-115ABAB69567}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "AtomKV.AtomSharp", "AtomKV.AtomSharp\AtomKV.AtomSharp.fsproj", "{52937539-300B-4B08-B151-115ABAB69567}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FDA32D17-AE1F-476A-AE9A-6CDCFBDBBD03}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

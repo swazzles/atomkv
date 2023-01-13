@@ -3,11 +3,11 @@
 open System.Text
 open System.Text.Json
 
-module JsonDocumentSerialization = 
+module JsonSerialization = 
 
-    let objectToJsonBytes obj =
+    let serialize obj =
         Encoding.UTF8.GetBytes(JsonSerializer.Serialize(obj))
 
-    let objectFromJsonBytes<'T> (bytes:byte[]) = 
+    let deserialize<'T> (bytes:byte[]) = 
         JsonSerializer.Deserialize<'T>(Encoding.UTF8.GetString(bytes))
         

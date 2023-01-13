@@ -6,30 +6,21 @@ open AtomKV.Core
 module MetaLayer = 
     type MetaLayerState() =
         member val ActiveTable:AtomTable option = None with get, set
-        member val Services:ServiceBundle = {
-            DocumentSerializer = JsonDocumentSerialization.objectToJsonBytes
-            DocumentDeserializer = JsonDocumentSerialization.objectFromJsonBytes
-
-            KeyHasher = AtomKeySpaceV1.getKeyHash
-            KeySharder = AtomKeySpaceV1.getKeyShard
-            KeyValidator = AtomKeySpaceV1.validateKey
-
-            Compressor = GZipCompression.compress
-            Decompressor = GZipCompression.decompress
-        }
+        member val Atom:Atom = AtomDefaultInitialization.initialize()
 
     let state = new MetaLayerState()
 
     let table name =
-        state.ActiveTable <- Some(AtomTable.openTable name 16 state.Services)
+        state.ActiveTable <- Some(AtomTable.openTable state.Atom name 16)
 
     let put key value = 
         match state.ActiveTable with
-        | Some(table) -> AtomTable.put table key value state.Services
-        | _ -> ()
+        | Some(table) -> AtomTable.put state.Atom table key value
+        | _ -> failwith "No active table."
 
     let get key = 
         match state.ActiveTable with
-        | Some(table) -> AtomTable.get table key state.Services |> DocumentSerialization.serializeDocument state.Services.DocumentSerializer
+        | Some(table) -> Some(AtomTable.get state.Atom table key)
+        | _ -> failwith "No active table."
 
 
