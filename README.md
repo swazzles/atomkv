@@ -26,9 +26,6 @@ Using the AtomKV.Core library we can interact with the database like so
 
 // setup our services to be injected
 let services = {
-            DocumentSerializer = JsonDocumentSerialization.objectToJsonBytes
-            DocumentDeserializer = JsonDocumentSerialization.objectFromJsonBytes
-
             KeyHasher = AtomKeySpaceV1.getKeyHash
             KeySharder = AtomKeySpaceV1.getKeyShard
             KeyValidator = AtomKeySpaceV1.validateKey
@@ -46,21 +43,19 @@ let myObject = {
   Age = 55
 }
 
-// serialize the data to JSON bytes
-let someData = DocumentSerialization.serializeDocument services.DocumentSerializer myObject
-
-// store it in the db 
-AtomTable.put table "mykey" someData
+// serialize our object to JSON bytes and store it in the db 
+JsonSerialization.serialize 
+	|> myObjectAtomTable.put table "mykey" someData
 
 // retrieve the document
-let doc = AtomTable.get table "mykey" |> DocumentSerialization.deserializeDocument services.DocumentSerializer
+let doc = AtomTable.get table "mykey" |> JsonSerialization.deserialize
 ``` 
 
 ## Extensibility
 You may notice the services bundle at the top of the previous code example. AtomKV is architected with dependency-injection at its core meaning all of the key features of the database can be swapped out with your own custom implementation if you so choose.
 There are defaults provided for things like compression, document serialization, key-space management but you can swap these out altogether if you need to.
 
-## KeySpace
+## Key-space
 Documents in AtomKV are stored in a number of different pages on disk. 
 When you open a table you can specifiy the total number of different pages to split your database up in.
 Using key hashing AtomKV lets you distribute documents over these different pages to improve performance and to prevent IO bottlenecks reading/writing from the same file.
@@ -105,7 +100,8 @@ By first retrieving the employee, you can then perform a second get to grab the 
 
 
 ## Roadmap
-- Document versioning: assining a unique key a version where each new iteration of the document increments the version. This can be used for preventing deadlocks whilst maintaining data integrity.
+- Document versioning: assining a unique key a version where each new iteration of the document increments the version. This can be used for preventing deadlocks whilst maintaining data integrity. 
+- Elastic key-space - Create tables without shards specified, as page files fill up expand our key-space dynamically whilst still allowing retrieval of documents by key only. 
 - Backup and restore utilities
 - Key conditions: search for documents using advanced operations on keys e.g. startsWith, contains.
 - Document retrieval paging: retrieve 1-n documents from 1-n pages where key condition is met.
@@ -113,4 +109,3 @@ By first retrieving the employee, you can then perform a second get to grab the 
     - Consider making all get and put operations asynchronous and multi-part by default 
 - Multi-node redundancy: allowing multiple machines to synchronize the database for data redundancy and failover.
 - Multi-node sharding: bringing the on-disk KeySpace to the network level, allowing different parts of the KeySpace to be distributed over multiple networked nodes.
-- KeySpace size adjustment: allowing the KeySpace of an existing database to be adjusted to increase or decrease the number of partitions.
