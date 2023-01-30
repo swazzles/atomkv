@@ -9,7 +9,4 @@ module AtomDefaultInitialization =
             KeyHasher = AtomKeySpaceV1.getKeyHash
             KeySharder = AtomKeySpaceV1.getKeyShard
             KeyValidator = AtomKeySpaceV1.validateKey
-
-            Compressor = GZipCompression.compress
-            Decompressor = GZipCompression.decompress
         }

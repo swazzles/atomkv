@@ -8,6 +8,6 @@ module JsonSerialization =
     let serialize obj =
         Encoding.UTF8.GetBytes(JsonSerializer.Serialize(obj))
 
-    let deserialize<'T> (bytes:byte[]) = 
+    let deserialize<'T> (bytes:byte[]) =
         JsonSerializer.Deserialize<'T>(Encoding.UTF8.GetString(bytes))
         

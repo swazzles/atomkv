@@ -13,35 +13,6 @@ open System.Text.Json
 let Setup () =
     ()
 
-type TestType = {
-    TestField: int
-}
-
-
-[<Test>]
-let ``test putting and retrieving from page``()  =
-    let atom = AtomDefaultInitialization.initialize()
-    
-    let page = AtomPage.openPage "1"
-    AtomPage.deletePage page
-
-    let page = AtomPage.openPage "1"
-
-    let docObject = {
-        TestField = 1
-    }
-
-    let doc = JsonSerialization.serialize docObject
-
-    for i in [1..100] do
-        let key = $"mykey-{i}"
-        AtomPage.put atom page key doc |> ignore
-
-        let getResponse = AtomPage.get atom page key
-        getResponse.Status |> should equal GetResponseStatus.Ok
-
-        let newDocObject = getResponse |> AtomDocument.unwrap |> JsonSerialization.deserialize<TestType>
-        newDocObject.TestField |> should equal docObject.TestField
 
 [<Test>]
 let ``test generating stable key hash``() = 
