@@ -1,21 +1,24 @@
 ﻿namespace AtomKV.Core
 
 module AtomIndex = 
-    type AtomIndex = {
-        IndexLocation: int64
+    type AtomIndexData = {
         Key:string
         Hash:string
         DocumentStart:int64
         DocumentLength: int64
     }
 
-    let indexToString (index:AtomIndex) = 
+    type AtomIndex = {
+        IndexLocation: int64
+        Data: AtomIndexData
+    }
+
+    let indexToString (index:AtomIndexData) = 
         $"{index.Key}|{index.Hash}|{index.DocumentStart}|{index.DocumentLength}"
 
-    let indexFromString location (index:string) = 
+    let indexFromString (index:string) =        
         let tokens = index.Split "|"
         {
-            IndexLocation = location
             Key = tokens[0]
             Hash = tokens[1]
             DocumentStart = int64(tokens[2])
@@ -24,6 +27,6 @@ module AtomIndex =
 
     let requiresUpdate index hash = 
         match index with
-        | Some(x) -> not (hash.Equals(x.Hash))
+        | Some(x) -> not (hash.Equals(x.Data.Hash))
         | None -> true
 

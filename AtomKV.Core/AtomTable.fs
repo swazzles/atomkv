@@ -3,42 +3,80 @@
 open System.Collections.Generic
 open System.Text.Json.Serialization
 open AtomKV.Core.Types
+open System.Threading
+open System.Threading.Channels
+open System.Threading.Tasks
+open System.Collections.Concurrent
+open System
 
 type AtomTable = {
     Name: string
     KeySpaceSize: int
-
-    [<JsonIgnore>]
-    TablePage: AtomPage
-
-    [<JsonIgnore>]
-    Pages: IDictionary<int, AtomPage>
+    Pages: IDictionary<string, AtomPage>
+    RequestChannel: Channel<AtomRequest>
 }
 
-module AtomTable = 
-    let openTable (atom:Atom) tableName keySpaceSize = 
-        let table = {
-            Name = tableName
-            KeySpaceSize = keySpaceSize
-            Pages = [for i in [1..keySpaceSize] do yield (i, AtomPage.openPage $"{tableName}-{i}")] |> dict
-            TablePage = AtomPage.openPage $"{tableName}.table"
+module AtomTable =
+    let private getPageFileName tableName keySpaceSize i = 
+        $"{tableName}-{keySpaceSize}-{i}"
+
+    (*
+        Create/open an AtomPage for each partition in the keyspace.
+    *)
+    let private openPages tableName keySpaceSize =
+        let shards = [for i in [1..keySpaceSize] -> getPageFileName tableName keySpaceSize i]
+        let pages = shards |> Seq.map AtomPage.getPage
+        [for page in pages do yield (page.Name, page) ] |> dict
+
+    let private closeTable table = 
+        async {
+            do! table.Pages
+                |> Seq.map (fun t -> AtomPage.closePage t.Value)
+                |> Async.Parallel
+                |> Async.Ignore
         }
 
-        let res = JsonSerialization.serialize table |> AtomPage.put atom table.TablePage "TableDefinition"
-        match res.Status with
-        | PutResponseStatus.Ok | PutResponseStatus.NoUpdate -> table
-        | PutResponseStatus.Fail -> failwith $"Error when opening table {tableName}. See error logs."   
+    let openTable tableName keySpaceSize = 
+        let pages = openPages tableName keySpaceSize
+        {
+            Name = tableName
+            KeySpaceSize = keySpaceSize
+            Pages = pages
+            RequestChannel = Channel.CreateBounded<AtomRequest>(keySpaceSize*AtomConstants.pageChannelBounding)
+        }
 
-    let put (atom:Atom) table key doc = 
-        let keyShard = KeySpace.getKeyShard atom.KeySharder key table.KeySpaceSize 
-        AtomPage.put atom table.Pages.[keyShard] key doc
-    
-    let get (atom:Atom) table key = 
-        let keyShard = KeySpace.getKeyShard atom.KeySharder key table.KeySpaceSize
-        AtomPage.get atom table.Pages.[keyShard] key 
+    (*
+        Main table thread.
+        Starts up a thread for each page performing processRequestsAsync for each.
+        Closes the table and each thread upon cancellation.
+    *)
+    let run (atom:Atom) (table:AtomTable) (cancellationToken:CancellationToken)  = 
+        async {
+            [for page in table.Pages do yield AtomPage.processRequestsAsync atom page.Value cancellationToken]
+                |> Async.Parallel
+                |> Async.RunSynchronously
+                |> ignore
 
-    let dropTable (atom:Atom) table = 
-        for kvp in table.Pages 
-            do kvp.Value |> AtomPage.deletePage
+            do! closeTable table
+        }   
 
-        AtomPage.deletePage table.TablePage
+    let performRequest (atom:Atom) (table:AtomTable) (req:AtomRequest) = 
+        async {
+            let key =
+                match req with
+                | PutRequest(t) -> t.Key
+                | GetRequest(t) -> t.Key
+
+            let keyShard = KeySpace.getKeyShard atom.KeySharder key table.KeySpaceSize
+            let pageFilePath = getPageFileName table.Name table.KeySpaceSize keyShard
+            let page = table.Pages.[pageFilePath]
+
+            let promise = {
+                Request = req
+                CompletionChannel = Channel.CreateBounded<AtomResponse>(1)
+            }
+
+            do! page.RequestChannel.Writer.WriteAsync(promise).AsTask() |> Async.AwaitTask
+
+            return promise
+        }

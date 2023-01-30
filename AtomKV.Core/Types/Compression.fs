@@ -1,12 +1,16 @@
 ﻿namespace AtomKV.Core.Types
 
 module Compression =
-    type IAtomCompressor = byte[] -> byte[]
-    type IAtomDecompressor = byte[] -> byte[]
+    type IAtomCompressor = byte[] -> Async<byte[]>
+    type IAtomDecompressor = byte[] -> Async<byte[]>
 
     let compress (compressor:IAtomCompressor) (bytes:byte[]) =
-        compressor bytes
+        async {
+            return! compressor bytes
+        }
 
     let decompress (decompressor:IAtomDecompressor) (bytes:byte[]) =
-        decompressor bytes
+        async {
+            return! decompressor bytes
+        }
 

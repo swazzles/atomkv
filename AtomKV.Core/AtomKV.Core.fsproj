@@ -6,12 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Types\AtomResponse.fs" />
+    <Compile Include="Types\AtomRequest.fs" />
     <Compile Include="Types\KeySpace.fs" />
     <Compile Include="Types\Compression.fs" />
     <Compile Include="Types\Atom.fs" />
-    <Compile Include="GZipCompression.fs" />
-    <Compile Include="JsonDocumentSerialization.fs" />
+    <Compile Include="JsonSerialization.fs" />
     <Compile Include="AtomConstants.fs" />
     <Compile Include="AtomKeySpaceV1.fs" />
     <Compile Include="AtomFile.fs" />
