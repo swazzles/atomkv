@@ -8,8 +8,6 @@ This is not intended for any serious use, I work on this in my free time to lear
 
 If you trust me (someone who is currently learning F# and has no formal experience in building an actual database) to build a robust production-ready key-value database then please by all means use this in prod ASAP :)
 
-"Why aren't there any comments in code?" Idk read it and figure it out.
-
 Documentation here in the README is also a WIP.
 
 ## Summary
