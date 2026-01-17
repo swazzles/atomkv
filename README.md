@@ -2,7 +2,7 @@
 A lightweight key-value database written from scratch in F# targeting .NET 6
 
 ## Disclaimer
-Not to be confused with https://github.com/skeeto/atomkv (sorry, didn't look up the name and I can't be bothered changing it)
+Not to be confused with https://github.com/skeeto/atomkv (sorry, didn't look up the name beforehand)
 
 This is not intended for any serious use, I work on this in my free time to learn F#.
 
